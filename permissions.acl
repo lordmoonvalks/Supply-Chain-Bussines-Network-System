@@ -1,0 +1,199 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+/* Rule for all participants to be able to login and use network functionality */
+
+rule SystemACL {
+       	description: "Rule for all participants to be able to login and use network functionalit"
+        participant: "org.hyperledger.composer.system.Participant"
+        operation: ALL
+        resource: "org.hyperledger.composer.system.**"
+        action: ALLOW
+    }  
+
+/* Access control restriction for administration */
+
+rule NetworkAdminUser {
+    description: "rule for business network administrators to fully access users resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "**"
+    action: ALLOW
+}
+
+
+rule NetworkAdminSystem {
+    description: "rule for business network administrators to fully access to system resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
+
+
+
+
+/* Access control list for my ms2819@live.mdx.ac.uk network */
+    
+
+/* Access control for Commodity asset, so all participants can read their own goods */
+    
+    rule ReadCommodity {
+       	description: "All participants can read their own goods"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: READ
+        resource(r): "org.ms2819.supply.chain.network.Commodity" 
+      	condition: (r.owner.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+     
+/* Access control for "Purchase_order" asset, so all vendors can read their own goods */
+  
+    rule VendorReadPurchaseOrder {
+       	description: "Rule for All vendors so they can read their own purchased orders"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: READ
+        resource(r): "org.ms2819.supply.chain.network.Purchase_order"
+      	condition: (r.vendor.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+
+/* Access control for "Purchase_order" asset, so all vendors can read their own goods */
+  
+    rule VendorUpdatePurchaseOrder {
+       	description: "Rule for All vendors so they can update the status of purchase initiated with 'Initiate_purchase_order' transaction "
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: UPDATE
+        resource(r): "org.ms2819.supply.chain.network.Purchase_order"
+      	condition: (r.vendor.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+  
+ /* Access control for "Purchase_order" asset, so all orderers can read their own goods */
+  
+    rule OrdererReadPurchaseOrder {
+       	description: "Rule for all orderers so they can can read their own purchased orders"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: READ
+        resource(r): "org.ms2819.supply.chain.network.Purchase_order"
+      	condition: (r.purchaser.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+     
+ /* Access control for Commodity asset, so all participants can create "Transfer_commodity" transaction */
+  
+    rule CreateTransferCommodity {
+       	description: "Rule for all participants so they can create 'Transfer_commodity' transaction"
+        participant: "org.ms2819.supply.chain.network.*"
+        operation: CREATE
+        resource: "org.ms2819.supply.chain.network.Transfer_commodity"
+        action: ALLOW
+    }
+  
+  /* Rule for all participants so they can use 'Transfer_commodity' transaction to transfer their own commodities" */
+
+    rule TransferOnlyYourOwnCommodity {
+       	description: "Rule for all participants so they can use 'Transfer_commodity' transaction to transfer their own commodities only"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: UPDATE
+        resource(r): "org.ms2819.supply.chain.network.*"
+      	transaction(tx): "org.ms2819.supply.chain.network.Transfer_commodity"
+      	condition: (r.owner.getIdentifier() == p.getIdentifier()) /* only owner's commodity*/
+        action: ALLOW
+    }
+     
+  /* Rule for all participants so they can read only THEIR OWN transaction records */
+
+    rule ReadOwnTransactionRecords {
+       	description: "Rule for all participants so they can read their own transaction records"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: READ
+        resource(r): "org.ms2819.supply.chain.network.Transfer_commodity"
+      	condition: (r.issuer.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+     
+  /* Rule for all new owners of commodities so they can read only THEIR OWN transaction records */
+
+    rule ReadOwnTransactionRecordsForNewOwner {
+       	description: "Rule to grant new owner of commodity to read their own transaction records"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: READ
+        resource(r): "org.ms2819.supply.chain.network.Transfer_commodity"
+      	condition: (r.new_owner.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+
+
+  /* Rules for all participants to create their own resources */
+
+    rule CreateOwnResource {
+       	description: "rule for all partcipants to create its own resource"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: CREATE
+        resource(r): "org.ms2819.supply.chain.network.Commodity"
+      	condition: (r.owner.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+     
+  /* Rule for all participants to create their own "Purchase_order" trransactions */
+
+    rule CreateOwnPurchaseOrder {
+       	description: "Rule for all participants to create their own 'Purchase_order' trransactions"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: CREATE
+        resource(r): "org.ms2819.supply.chain.network.Purchase_order"
+      	condition: (r.purchaser.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+     
+  /* Rule for all participants to create their own "Purchase_order" assets via "Initiate_purchase_order" */
+     
+    rule CreateInitiatePurchaseOrder {
+       	description: "Rule for all participants so they can create 'Initiate_purchase_order' transactions"
+        participant: "org.ms2819.supply.chain.network.*"
+        operation: CREATE
+        resource: "org.ms2819.supply.chain.network.Initiate_purchase_order"
+        action: ALLOW
+    }
+ 
+  /* Rule for all vendors to read their own "Initiate_purchase_order" transactions records */
+
+    rule VendorReadTransactionIPO {
+       	description: "Rule to let all vendors read their own transaction records for 'Initiate_purchase_order'"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: READ
+        resource(r): "org.ms2819.supply.chain.network.Initiate_purchase_order"
+      	condition: (r.vendor.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+     
+  /* Rule for all purchasers to read their own "Initiate_purchase_order" transactions records */
+
+    rule PurchaserReadTransactionIPO {
+       	description: "Rule to let all purchasers read their own transaction records for 'Initiate_purchase_order'"
+        participant(p): "org.ms2819.supply.chain.network.*"
+        operation: READ
+        resource(r): "org.ms2819.supply.chain.network.Initiate_purchase_order"
+      	condition: (r.purchaser.getIdentifier() == p.getIdentifier())
+        action: ALLOW
+    }
+
+
+
+
+

@@ -1,0 +1,150 @@
+ /*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+/* defined namespace for my supply chain network */
+
+namespace org.ms2819.supply.chain.network
+
+/* Tracking system defined as concept, used for to track commodities */
+concept Trace {
+o DateTime timestamp
+o Address location
+--> Trader company
+}
+
+
+
+/* Commodity defined for the supply chain network*/
+/* Commodity will be linked with  "purchase_order" "Trader owner" and "Trader issuer" assets*/
+asset Commodity identified by commodityid {
+o String commodityid
+o String name
+o String description
+o Double quantity
+o Double unit_price optional
+o Double total_price optional
+o Trace[] trace                             /* linked to trace concept, to track over commodities (multiple traces) */
+--> Purchase_order purchase_order optional  /* relationship with Purchase_order asset */
+--> Trader owner optional                   /* relationship with Trader owner of the commodity */
+--> Trader issuer optional                  /* relationship with Trader issuer of the commodity */
+}
+
+
+/* purchase order transaction for the supply chain network*/
+/* purchase order relationships are defined for interchain transactions i.e manufacturer buying from distributeor etc. */
+asset Purchase_order identified by order_id {
+o String order_id
+o Commodity[] itemlist
+o Double order_total_price optional
+o Purchase_status purchase_status optional
+--> Trader purchaser   /* relationship with Trader purchaser of the commodity */
+--> Trader vendor      /* relationship with Trader vendor of the commodity */
+}
+
+
+/* order status variable from predefined "order_status" in "purchase_order" asset. */
+enum Purchase_status {
+o PLACED
+o DELAYED
+o IN_PROGRESS
+o COMPLETED
+}
+
+
+/* address defined as a concept, so participants can use it approperiately with optional attributes */
+concept Address {
+o String address_part1 optional
+o String address_part2 optional
+o String address_part3 optional
+o String county optional
+o String city optional
+o String post_code optional
+o String country optional
+}
+
+
+/* participants defined for the supply chain network */
+/* abstract extends the participants to be derived from Trader */
+abstract participant Trader  {
+o String companyName
+o Address companyAddress
+}
+
+participant Retailer identified by tradeId extends Trader {
+o String tradeId
+}
+participant Distributor identified by tradeId extends Trader {
+o String tradeId
+}
+participant Manufacturer identified by tradeId extends Trader {
+o String tradeId
+}
+participant Customer identified by tradeId extends Trader {
+o String tradeId
+}
+participant Supplier identified by tradeId extends Trader {
+o String tradeId
+}
+
+
+
+/* Transaction for initiating orders by participants*/
+/*user must specify list of commodities he wants to buy, this list will be mapped to commodity list in    purchase order function itself */
+transaction Initiate_purchase_order {
+o String order_id
+o Commodity[] itemlist /* mapping with commodity  itemlist within "Purchase_order"*/
+o Double order_total_price optional
+--> Trader purchaser  optional /* relationship with Trader purchaser of the commodity within "Purchase_order asset" */
+--> Trader vendor /* relationship with Trader vendor of the commodity within "Purchase_order asset" */
+}
+
+
+/* Transaction for transfering commoditity ownerships between traders*/
+transaction Transfer_commodity {
+--> Commodity commodity /* mapping with commodity list*/
+--> Trader issuer  /* relationship with Trader issuer of the commodity within Commodity asset */
+--> Trader new_owner  /* relationship with Trader new_owner of the commodity*/
+--> Purchase_order purchase_order optional /* mapping with "Purchase_order" asset */
+o Address shipping_from /* attribute for address where the commodity will be transfered from*/
+}
+
+
+/* Transactions used to quering ms2819.supply.chain.network resources*/
+
+/* query Commodity via commodityid*/
+transaction query_commodity{
+  --> Commodity commodity
+}
+
+/* query Purchase_order via order_id*/
+transaction query_purchase_order{
+  --> Purchase_order purchase_order
+}
+
+/* query all supplliers*/
+transaction query_suppliers{}
+
+/* query all retailers*/
+transaction query_retailers{}
+
+/* query all manufactuers*/
+transaction query_manufacturers{}
+
+/* query all customers*/
+transaction query_customers{}
+
+/* query all distributors*/
+transaction query_distributors{}
+

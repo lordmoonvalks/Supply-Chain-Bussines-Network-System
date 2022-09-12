@@ -1,0 +1,62 @@
+/**
+ * query the commodity via commodityid 
+ */ 
+
+    query query_commodity {
+     description: "Query the specific commodity via 'commodityid' link relationship"
+     statement: SELECT org.ms2819.supply.chain.network.Commodity WHERE (commodityid == _$tID )
+    }
+
+/**
+ * query the desired order (Purchase_order asset) via "order_id"" 
+ */ 
+
+    query query_purchase_order {
+     description: "Query the order'order_id' link relationship"
+     statement: SELECT org.ms2819.supply.chain.network.Purchase_order WHERE (order_id == _$tID )
+    }
+/**
+ * query all the suppliers
+ */ 
+   query query_suppliers {
+     description: "Query all the suppliers"
+     statement: SELECT org.ms2819.supply.chain.network.Supplier
+   }
+
+/**
+ * query all the retailers
+ */ 
+
+   query query_retailers {
+     description: "Query all the retailers"
+     statement: SELECT org.ms2819.supply.chain.network.Retailer
+   }
+
+
+/**
+ * query all the manufacturers
+ */ 
+
+   query query_manufactuers {
+     description: "Query all the manufactuers"
+     statement: SELECT org.ms2819.supply.chain.network.Manufacturer
+   }
+
+
+/**
+ * query all the customers
+ */ 
+
+   query query_customers {
+     description: "Query all the customers"
+     statement: SELECT org.ms2819.supply.chain.network.Customer
+   }
+
+/**
+ * query all the distributors
+ */ 
+
+   query query_dsitributors {
+     description: "Query all the distributors"
+     statement: SELECT org.ms2819.supply.chain.network.Supplier
+   }
